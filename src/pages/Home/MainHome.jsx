@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-import Pagination from "../../components/Pagination.jsx";
 import slide1 from "../../assets/slide1.jpg";
 import slide2 from "../../assets/slide2.jpg";
 import slide3 from "../../assets/slide3.jpg";
 import slide4 from "../../assets/slide4.jpg";
-
+import Pagination from "../../components/Pagination";
 import {
   MapPin,
   Bed,
@@ -18,63 +17,41 @@ import {
 } from "lucide-react";
 import { FiVideo, FiImage } from "react-icons/fi";
 
-import img1 from "../../assets/img1.png";
-import img2 from "../../assets/img2.png";
-import img3 from "../../assets/img3.png";
-import img4 from "../../assets/img4.png";
-import img5 from "../../assets/img5.png";
-import img6 from "../../assets/img6.png";
-import img7 from "../../assets/img7.png";
-import img8 from "../../assets/img8.png";
-import img9 from "../../assets/img9.png";
-
 const MainHome = () => {
   const [sortOption, setSortOption] = useState("default");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
   const [properties, setProperties] = useState([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Fetch properties from backend
+  // Fetch properties from deployed backend
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get(
-          "https://beta-house-backend-b96p.onrender.com/properties"
+        const res = await axios.get(
+          "https://beta-house-backend-b96p.onrender.com/api/properties"
         );
-        // Map backend data to match frontend structure
-        const mapped = response.data.map((prop, index) => ({
-          id: prop._id || index,
-          img: prop.image || img1,
-          title: prop.title || "Property",
-          location: prop.location || "Unknown",
-          bed: prop.bedrooms || 3,
-          bath: prop.bathrooms || 2,
-          price: prop.price || 0,
-          label: prop.label || "For Sale",
-        }));
-        setProperties(mapped);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
+        setProperties(res.data); // make sure backend returns array of properties
+      } catch (err) {
+        console.error(err);
       }
     };
     fetchProperties();
   }, []);
 
-  // HANDLE FILTER BUTTON CLICK
+  // Handle filter button click
   const handleFilterClick = (filter) => {
     setActiveFilters((prev) => {
       if (prev.includes(filter)) {
-        return prev.filter((f) => f !== filter); // remove filter if already active
+        return prev.filter((f) => f !== filter);
       } else {
-        return [...prev, filter]; // add filter
+        return [...prev, filter];
       }
     });
   };
 
-  // APPLY FILTERS
+  // Apply filters
   const filteredProperties = properties.filter((prop) => {
-    if (activeFilters.length === 0) return true; // no filters = show all
+    if (activeFilters.length === 0) return true;
     return activeFilters.some((filter) => {
       if (filter === "For Sale" || filter === "For Rent")
         return prop.label === filter;
@@ -85,25 +62,12 @@ const MainHome = () => {
     });
   });
 
-  // SORTING LOGIC
+  // Sorting
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortOption === "low") return a.price - b.price;
     if (sortOption === "high") return b.price - a.price;
     return 0;
   });
-
-  // Carousel controls
-  const nextSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === sortedProperties.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === 0 ? sortedProperties.length - 1 : prev - 1
-    );
-  };
 
   return (
     <div className="w-full bg-white pt-[120px] px-6">
@@ -177,7 +141,7 @@ const MainHome = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedProperties.map((item) => (
             <div
-              key={item.id}
+              key={item._id || item.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
             >
               <div className="relative">
@@ -234,16 +198,8 @@ const MainHome = () => {
                   </p>
 
                   <div className="flex items-center gap-3 text-gray-500">
-                    <ArrowLeft
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={prevSlide}
-                    />
-                    <ArrowRight
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={nextSlide}
-                    />
+                    <ArrowLeft size={20} className="cursor-pointer" />
+                    <ArrowRight size={20} className="cursor-pointer" />
                     <Share2 size={20} className="cursor-pointer" />
                     <Heart
                       size={20}
@@ -256,44 +212,134 @@ const MainHome = () => {
           ))}
         </div>
         <Pagination />
-
-        {/* DISCOVER POPULAR PROPERTIES CAROUSEL */}
         <section className="w-full mt-16 mb-20 px-4 lg:px-16 relative">
+          {/* Header */}
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-12">
             Discover Our Popular Properties
           </h2>
 
-          <div className="relative flex items-center justify-center">
+          <div className="relative">
+            {/* LEFT ARROW */}
             <button
-              className="absolute left-0 z-10 p-4 bg-gray-300 rounded-full hover:bg-green-500 lg:hidden"
-              onClick={prevSlide}
+              className="absolute top-1/2 -left-6 transform -translate-y-1/2 w-14 h-14 bg-gray-300 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
+              onClick={() =>
+                document
+                  .getElementById("propertiesFlex")
+                  .scrollBy({ left: -350, behavior: "smooth" })
+              }
             >
-              <ArrowLeft size={24} />
+              <ArrowLeft size={30} className="text-gray-800" />
             </button>
-            <div className="w-full overflow-hidden">
-              <div
-                className="flex transition-transform duration-500"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {[slide1, slide2, slide3, slide4].map((slide, index) => (
-                  <div
-                    key={index}
-                    className="min-w-full relative rounded-xl overflow-hidden"
-                  >
-                    <img
-                      src={slide}
-                      className="w-full h-[430px] object-cover"
-                    />
+
+            {/* RIGHT ARROW */}
+            <button
+              className="absolute top-1/2 -right-6 transform -translate-y-1/2 w-14 h-14 bg-green-400 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
+              onClick={() =>
+                document
+                  .getElementById("propertiesFlex")
+                  .scrollBy({ left: 350, behavior: "smooth" })
+              }
+            >
+              <ArrowRight size={30} className="text-gray-800" />
+            </button>
+
+            {/* Cards Container */}
+            <div
+              id="propertiesFlex"
+              className="flex gap-10 overflow-x-auto scroll-smooth scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-10"
+            >
+              {/* CARD 1 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide1} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Semi Detached Duplex
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦1,430,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>6 Bed</span>
+                      <span>3 Bath</span>
+                      <span>720 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* CARD 2 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide2} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Luxury Penthouse
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦950,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>4 Bed</span>
+                      <span>3 Bath</span>
+                      <span>620 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 3 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide3} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Modern Smart Home
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦680,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>5 Bed</span>
+                      <span>4 Bath</span>
+                      <span>800 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 4 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide4} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Terrace Duplex
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦520,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>4 Bed</span>
+                      <span>3 Bath</span>
+                      <span>650 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <button
-              className="absolute right-0 z-10 p-4 bg-green-400 rounded-full hover:bg-green-500 lg:hidden"
-              onClick={nextSlide}
-            >
-              <ArrowRight size={24} />
-            </button>
           </div>
         </section>
       </div>
