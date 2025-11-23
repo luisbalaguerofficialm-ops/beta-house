@@ -2,28 +2,32 @@ import React from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  // Generate page numbers array dynamically
+  // Generate page numbers
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
   }
 
   const handlePrev = () => {
-    if (currentPage > 1) onPageChange(currentPage - 1);
+    if (currentPage > 1) {
+      onPageChange(currentPage - 1);
+    }
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) onPageChange(currentPage + 1);
+    if (currentPage < totalPages) {
+      onPageChange(currentPage + 1);
+    }
   };
 
   return (
     <div className="flex items-center justify-center gap-3 mt-10 mb-16">
       {/* Previous Arrow */}
       <button
+        onClick={handlePrev}
         className={`p-1 ${
           currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
         }`}
-        onClick={handlePrev}
       >
         <ArrowLeft className="w-4 h-4 text-gray-500" />
       </button>
@@ -47,10 +51,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       {/* Next Arrow */}
       <button
+        onClick={handleNext}
         className={`p-1 ${
           currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
         }`}
-        onClick={handleNext}
       >
         <ArrowRight className="w-4 h-4 text-gray-500" />
       </button>

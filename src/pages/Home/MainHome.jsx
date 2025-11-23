@@ -26,7 +26,7 @@ const MainHome = () => {
 
   const propertiesPerPage = 8; // items per page
 
-  // Fetch properties from deployed backend
+  // Fetch properties from backend
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -48,6 +48,7 @@ const MainHome = () => {
         ? prev.filter((f) => f !== filter)
         : [...prev, filter]
     );
+    setCurrentPage(1); // reset page to 1 on filter change
   };
 
   // Apply filters
@@ -55,7 +56,7 @@ const MainHome = () => {
     if (activeFilters.length === 0) return true;
     return activeFilters.some((filter) => {
       if (filter === "For Sale" || filter === "For Rent")
-        return prop.label === filter;
+        return prop.label?.toLowerCase() === filter.toLowerCase();
       if (filter === "1-3 Bedrooms")
         return prop.bedrooms >= 1 && prop.bedrooms <= 3;
       if (filter === "4-6 Bedrooms")
@@ -78,8 +79,14 @@ const MainHome = () => {
     currentPage * propertiesPerPage
   );
 
-  // Fallback images for popular section
+  // Popular slides
   const popularSlides = [slide1, slide2, slide3, slide4];
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="w-full bg-white pt-[120px] px-6">
@@ -137,12 +144,12 @@ const MainHome = () => {
               ].map((filter) => (
                 <button
                   key={filter}
-                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
-                    activeFilters.includes(filter)
-                      ? "bg-gray-200 border-gray-500"
-                      : ""
-                  }`}
                   onClick={() => handleFilterClick(filter)}
+                  className={`px-3 py-1 border rounded text-sm font-medium ${
+                    activeFilters.includes(filter)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                  }`}
                 >
                   {filter}
                 </button>
@@ -162,17 +169,13 @@ const MainHome = () => {
             >
               <div className="relative">
                 <img
-                  src={
-                    item.images && item.images.length > 0
-                      ? item.images[0]
-                      : slide1
-                  }
+                  src={item.images?.[0] || slide1}
                   alt={item.title}
                   className="w-full h-64 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
 
-                <div className="absolute top-4 left-4 flex gap-30 md:gap-38">
+                <div className="absolute top-4 left-4 flex gap-2">
                   <button className="bg-[#3D9970] rounded-lg w-20 h-8 text-white">
                     Featured
                   </button>
@@ -240,10 +243,10 @@ const MainHome = () => {
         <Pagination
           currentPage={currentPage}
           totalPages={Math.ceil(sortedProperties.length / propertiesPerPage)}
-          onPageChange={(page) => setCurrentPage(page)}
+          onPageChange={handlePageChange}
         />
 
-        {/* POPULAR PROPERTIES SECTION */}
+        {/* POPULAR PROPERTIES */}
         <section className="w-full mt-16 mb-20 px-4 lg:px-16 relative">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-12">
             Discover Our Popular Properties
@@ -255,7 +258,7 @@ const MainHome = () => {
               onClick={() =>
                 document
                   .getElementById("propertiesFlex")
-                  .scrollBy({ left: -350, behavior: "smooth" })
+                  ?.scrollBy({ left: -350, behavior: "smooth" })
               }
             >
               <ArrowLeft size={30} className="text-gray-800" />
@@ -266,7 +269,7 @@ const MainHome = () => {
               onClick={() =>
                 document
                   .getElementById("propertiesFlex")
-                  .scrollBy({ left: 350, behavior: "smooth" })
+                  ?.scrollBy({ left: 350, behavior: "smooth" })
               }
             >
               <ArrowRight size={30} className="text-gray-800" />
