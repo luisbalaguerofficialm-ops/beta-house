@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Pagination from "../../components/Pagination";
+
+import slide1 from "../../assets/slide1.jpg";
+import slide2 from "../../assets/slide2.jpg";
+import slide3 from "../../assets/slide3.jpg";
+import slide4 from "../../assets/slide4.jpg";
+
 import {
   MapPin,
   Bed,
@@ -12,11 +18,6 @@ import {
 } from "lucide-react";
 import { FiVideo, FiImage } from "react-icons/fi";
 
-import slide1 from "../../assets/slide1.jpg";
-import slide2 from "../../assets/slide2.jpg";
-import slide3 from "../../assets/slide3.jpg";
-import slide4 from "../../assets/slide4.jpg";
-
 const MainHome = () => {
   const [sortOption, setSortOption] = useState("default");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -24,7 +25,7 @@ const MainHome = () => {
   const [properties, setProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const propertiesPerPage = 8; // items per page
+  const propertiesPerPage = 9;
 
   // Fetch properties from backend
   useEffect(() => {
@@ -33,7 +34,8 @@ const MainHome = () => {
         const res = await axios.get(
           "https://beta-house-backend-b96p.onrender.com/api/properties"
         );
-        setProperties(res.data.properties); // backend returns { properties: [...] }
+        // Backend returns { properties: [...] }
+        setProperties(res.data.properties);
       } catch (err) {
         console.error(err);
       }
@@ -41,22 +43,22 @@ const MainHome = () => {
     fetchProperties();
   }, []);
 
-  // Handle filter button click
+  // Handle filter click
   const handleFilterClick = (filter) => {
     setActiveFilters((prev) =>
       prev.includes(filter)
         ? prev.filter((f) => f !== filter)
         : [...prev, filter]
     );
-    setCurrentPage(1); // reset page to 1 on filter change
+    setCurrentPage(1);
   };
 
   // Apply filters
   const filteredProperties = properties.filter((prop) => {
-    if (activeFilters.length === 0) return true;
+    if (!activeFilters.length) return true;
     return activeFilters.some((filter) => {
       if (filter === "For Sale" || filter === "For Rent")
-        return prop.label?.toLowerCase() === filter.toLowerCase();
+        return prop.label === filter;
       if (filter === "1-3 Bedrooms")
         return prop.bedrooms >= 1 && prop.bedrooms <= 3;
       if (filter === "4-6 Bedrooms")
@@ -73,20 +75,13 @@ const MainHome = () => {
     return 0;
   });
 
-  // Paginate properties
+  // Paginate
   const displayedProperties = sortedProperties.slice(
     (currentPage - 1) * propertiesPerPage,
     currentPage * propertiesPerPage
   );
 
-  // Popular slides
-  const popularSlides = [slide1, slide2, slide3, slide4];
-
-  // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const totalPages = Math.ceil(sortedProperties.length / propertiesPerPage);
 
   return (
     <div className="w-full bg-white pt-[120px] px-6">
@@ -104,7 +99,7 @@ const MainHome = () => {
             <p className="text-gray-500 hidden sm:block">
               Showing{" "}
               <span className="text-black font-semibold">
-                {(currentPage - 1) * propertiesPerPage + 1}–
+                {(currentPage - 1) * propertiesPerPage + 1}-
                 {Math.min(
                   currentPage * propertiesPerPage,
                   sortedProperties.length
@@ -118,7 +113,6 @@ const MainHome = () => {
             </p>
           </div>
 
-          {/* SORT DROPDOWN */}
           <select
             className="border rounded-md px-3 py-1.5 text-sm text-gray-700 bg-white shadow-sm cursor-pointer"
             value={sortOption}
@@ -130,7 +124,6 @@ const MainHome = () => {
           </select>
         </div>
 
-        {/* MORE FILTER PANEL */}
         {showMoreFilters && (
           <div className="mt-4 p-4 border-t border-gray-200 bg-white shadow-sm">
             <p className="font-semibold mb-2">Filter Options</p>
@@ -144,12 +137,12 @@ const MainHome = () => {
               ].map((filter) => (
                 <button
                   key={filter}
-                  onClick={() => handleFilterClick(filter)}
-                  className={`px-3 py-1 border rounded text-sm font-medium ${
+                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
                     activeFilters.includes(filter)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                      ? "bg-gray-200 border-gray-500"
+                      : ""
                   }`}
+                  onClick={() => handleFilterClick(filter)}
                 >
                   {filter}
                 </button>
@@ -161,7 +154,7 @@ const MainHome = () => {
 
       {/* PROPERTY GRID */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-30 md:">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {displayedProperties.map((item) => (
             <div
               key={item._id}
@@ -170,12 +163,11 @@ const MainHome = () => {
               <div className="relative">
                 <img
                   src={item.images?.[0] || slide1}
-                  alt={item.title}
                   className="w-full h-64 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
 
-                <div className="absolute top-4 left-4 flex gap-28 md:gap-35">
+                <div className="absolute top-4 left-4 flex gap-30 md:gap-40">
                   <button className="bg-[#3D9970] rounded-lg w-20 h-8 text-white">
                     Featured
                   </button>
@@ -200,18 +192,15 @@ const MainHome = () => {
               <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">{item.title}</h3>
-
                   <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
                     <MapPin size={16} />
                     <span>{item.location}</span>
                   </div>
-
                   <div className="flex items-center gap-4 mt-2 text-gray-500 text-sm">
                     <div className="flex items-center gap-1">
                       <Bed size={16} />
                       <span>{item.bedrooms} Bedrooms</span>
                     </div>
-
                     <div className="flex items-center gap-1">
                       <Bath size={16} />
                       <span>{item.bathrooms} Bathrooms</span>
@@ -223,7 +212,6 @@ const MainHome = () => {
                   <p className="text-lg font-semibold text-gray-800">
                     ₦{item.price.toLocaleString()}
                   </p>
-
                   <div className="flex items-center gap-3 text-gray-500">
                     <ArrowLeft size={20} className="cursor-pointer" />
                     <ArrowRight size={20} className="cursor-pointer" />
@@ -242,69 +230,138 @@ const MainHome = () => {
         {/* PAGINATION */}
         <Pagination
           currentPage={currentPage}
-          totalPages={Math.ceil(sortedProperties.length / propertiesPerPage)}
-          onPageChange={handlePageChange}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
         />
 
-        {/* POPULAR PROPERTIES */}
+        {/* POPULAR PROPERTIES SECTION */}
         <section className="w-full mt-16 mb-20 px-4 lg:px-16 relative">
+          {/* Header */}
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-12">
             Discover Our Popular Properties
           </h2>
 
           <div className="relative">
+            {/* LEFT ARROW */}
             <button
               className="absolute top-1/2 -left-6 transform -translate-y-1/2 w-14 h-14 bg-gray-300 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
               onClick={() =>
                 document
                   .getElementById("propertiesFlex")
-                  ?.scrollBy({ left: -350, behavior: "smooth" })
+                  .scrollBy({ left: -350, behavior: "smooth" })
               }
             >
               <ArrowLeft size={30} className="text-gray-800" />
             </button>
 
+            {/* RIGHT ARROW */}
             <button
               className="absolute top-1/2 -right-6 transform -translate-y-1/2 w-14 h-14 bg-green-400 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
               onClick={() =>
                 document
                   .getElementById("propertiesFlex")
-                  ?.scrollBy({ left: 350, behavior: "smooth" })
+                  .scrollBy({ left: 350, behavior: "smooth" })
               }
             >
               <ArrowRight size={30} className="text-gray-800" />
             </button>
 
+            {/* Cards Container */}
             <div
               id="propertiesFlex"
               className="flex gap-10 overflow-x-auto scroll-smooth scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-10"
             >
-              {popularSlides.map((slide, index) => (
-                <div
-                  key={index}
-                  className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0"
-                >
-                  <img src={slide} className="w-full h-[430px] object-cover" />
-                  <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
-                    <div className="flex flex-col items-start gap-1">
-                      <h3 className="text-white font-semibold text-xl whitespace-nowrap">
-                        Featured Property {index + 1}
-                      </h3>
-                      <p className="text-white font-bold text-xl whitespace-nowrap">
-                        ₦{(index + 1) * 500000000}
-                      </p>
-                      <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
-                        <span>{index + 4} Bed</span>
-                        <span>{index + 2} Bath</span>
-                        <span>{700 + index * 20} sq ft</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
-                        <MapPin size={16} /> Victoria Island, Lagos
-                      </div>
+              {/* CARD 1 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide1} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Semi Detached Duplex
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦1,430,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>6 Bed</span>
+                      <span>3 Bath</span>
+                      <span>720 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* CARD 2 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide2} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Luxury Penthouse
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦950,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>4 Bed</span>
+                      <span>3 Bath</span>
+                      <span>620 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 3 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide3} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Modern Smart Home
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦680,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>5 Bed</span>
+                      <span>4 Bath</span>
+                      <span>800 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 4 */}
+              <div className="relative rounded-xl overflow-hidden min-w-[300px] sm:min-w-[400px] lg:min-w-0">
+                <img src={slide4} className="w-full h-[430px] object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-linear-to-t from-black/95 to-transparent">
+                  <div className="flex flex-col items-start gap-1">
+                    <h3 className="text-white font-semibold text-xl whitespace-nowrap">
+                      Terrace Duplex
+                    </h3>
+                    <p className="text-white font-bold text-xl whitespace-nowrap">
+                      ₦520,000,000
+                    </p>
+                    <div className="flex items-center text-white text-sm gap-6 whitespace-nowrap">
+                      <span>4 Bed</span>
+                      <span>3 Bath</span>
+                      <span>650 sq ft</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white text-sm mt-2 whitespace-nowrap">
+                      <MapPin size={16} /> Victoria Island, Lagos
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
