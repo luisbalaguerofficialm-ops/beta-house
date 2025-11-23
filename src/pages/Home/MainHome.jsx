@@ -27,7 +27,7 @@ const MainHome = () => {
 
   const propertiesPerPage = 9;
 
-  // Fetch properties from backend
+  // Fetch all properties from backend
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -42,7 +42,7 @@ const MainHome = () => {
     fetchProperties();
   }, []);
 
-  // Handle bedroom filter click (multi-select)
+  // Handle filter button click
   const handleFilterClick = (filter) => {
     setActiveFilters((prev) =>
       prev.includes(filter)
@@ -52,10 +52,9 @@ const MainHome = () => {
     setCurrentPage(1);
   };
 
-  // Apply filters
+  // Filter properties
   const filteredProperties = properties.filter((prop) => {
     if (!activeFilters.length) return true;
-
     return activeFilters.some((filter) => {
       if (filter === "For Sale" || filter === "For Rent")
         return prop.label === filter;
@@ -68,7 +67,7 @@ const MainHome = () => {
     });
   });
 
-  // Sorting
+  // Sort properties
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortOption === "low") return a.price - b.price;
     if (sortOption === "high") return b.price - a.price;
@@ -112,7 +111,6 @@ const MainHome = () => {
             </p>
           </div>
 
-          {/* SORT DROPDOWN */}
           <select
             className="border rounded-md px-3 py-1.5 text-sm text-gray-700 bg-white shadow-sm cursor-pointer"
             value={sortOption}
@@ -124,46 +122,24 @@ const MainHome = () => {
           </select>
         </div>
 
-        {/* MORE FILTER PANEL */}
+        {/* MORE FILTERS */}
         {showMoreFilters && (
           <div className="mt-4 p-4 border-t border-gray-200 bg-white shadow-sm">
             <p className="font-semibold mb-2">Filter Options</p>
-
-            {/* For Sale / For Rent - Single Select */}
-            <div className="flex gap-4 mb-4">
-              {["For Sale", "For Rent"].map((filter) => (
-                <button
-                  key={filter}
-                  className={`px-4 py-2 rounded-md font-medium border transition-colors ${
-                    activeFilters.includes(filter)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                  }`}
-                  onClick={() => {
-                    setActiveFilters((prev) => {
-                      const otherSaleRent = prev.filter(
-                        (f) => f !== "For Sale" && f !== "For Rent"
-                      );
-                      if (prev.includes(filter)) return otherSaleRent; // unselect
-                      return [...otherSaleRent, filter]; // select this one
-                    });
-                    setCurrentPage(1);
-                  }}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-
-            {/* Bedroom Filters - Multi Select */}
             <div className="flex flex-wrap gap-4">
-              {["1-3 Bedrooms", "4-6 Bedrooms", "7+ Bedrooms"].map((filter) => (
+              {[
+                "For Sale",
+                "For Rent",
+                "1-3 Bedrooms",
+                "4-6 Bedrooms",
+                "7+ Bedrooms",
+              ].map((filter) => (
                 <button
                   key={filter}
-                  className={`px-3 py-1 border rounded hover:bg-gray-100 text-sm font-medium ${
+                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
                     activeFilters.includes(filter)
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-300"
+                      ? "bg-gray-200 border-gray-500"
+                      : ""
                   }`}
                   onClick={() => handleFilterClick(filter)}
                 >
@@ -190,7 +166,7 @@ const MainHome = () => {
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
 
-                <div className="absolute top-4 left-4 flex gap-27 md:gap-40">
+                <div className="absolute top-4 left-4 flex gap-30 md:gap-40">
                   <button className="bg-[#3D9970] rounded-lg w-20 h-8 text-white">
                     Featured
                   </button>
@@ -256,8 +232,6 @@ const MainHome = () => {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         />
-
-        {/* POPULAR PROPERTIES SECTION */}
         <section className="w-full mt-16 mb-20 px-4 lg:px-16 relative">
           {/* Header */}
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-12">
@@ -387,7 +361,7 @@ const MainHome = () => {
               </div>
             </div>
           </div>
-        </section>
+        </section>s
       </div>
     </div>
   );
