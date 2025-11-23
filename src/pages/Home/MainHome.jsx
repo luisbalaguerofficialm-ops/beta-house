@@ -175,7 +175,7 @@ const MainHome = () => {
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
 
-                <div className="absolute top-4 left-4 flex gap-30 md:gap-40">
+                <div className="absolute top-4 left-4 flex gap-28 md:gap-37">
                   <button className="bg-[#3D9970] rounded-lg w-20 h-8 text-white">
                     Featured
                   </button>
