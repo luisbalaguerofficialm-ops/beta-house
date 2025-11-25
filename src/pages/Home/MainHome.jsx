@@ -21,30 +21,53 @@ import { FiVideo, FiImage } from "react-icons/fi";
 const MainHome = () => {
   const [sortOption, setSortOption] = useState("default");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState([]);
+
+  // ACTIVE FILTER HOLDS ONLY "For Sale" or "For Rent"
+  const [activeSaleRent, setActiveSaleRent] = useState(null);
+  const [activeBedroomFilters, setActiveBedroomFilters] = useState([]);
+
   const [properties, setProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const propertiesPerPage = 9;
 
-  // Fetch all properties from backend
+  // FETCH ALL PROPERTIES WHEN PAGE LOADS
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const res = await axios.get(
-          "https://beta-house-backend-b96p.onrender.com/api/properties"
-        );
-        setProperties(res.data.properties);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchProperties();
+    fetchAllProperties();
   }, []);
 
-  // Handle filter button click
-  const handleFilterClick = (filter) => {
-    setActiveFilters((prev) =>
+  const fetchAllProperties = async () => {
+    try {
+      const res = await axios.get(
+        "https://beta-house-backend-b96p.onrender.com/api/properties"
+      );
+      setProperties(res.data.properties || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // HANDLE CLICK FOR SALE / FOR RENT
+  const handleSaleRentClick = async (type) => {
+    setActiveSaleRent(type);
+    setCurrentPage(1);
+
+    try {
+      const response = await axios.get(
+        `https://beta-house-backend-b96p.onrender.com/api/properties?type=${
+          type === "For Sale" ? "sale" : "rent"
+        }`
+      );
+
+      setProperties(response.data.properties || []);
+    } catch (error) {
+      console.error("Error fetching filtered properties:", error);
+    }
+  };
+
+  // HANDLE BEDROOM FILTERS
+  const handleBedroomFilter = (filter) => {
+    setActiveBedroomFilters((prev) =>
       prev.includes(filter)
         ? prev.filter((f) => f !== filter)
         : [...prev, filter]
@@ -52,29 +75,31 @@ const MainHome = () => {
     setCurrentPage(1);
   };
 
-  // Filter properties
+  // FILTER LOGIC
   const filteredProperties = properties.filter((prop) => {
-    if (!activeFilters.length) return true;
-    return activeFilters.some((filter) => {
-      if (filter === "For Sale" || filter === "For Rent")
-        return prop.label === filter;
-      if (filter === "1-3 Bedrooms")
-        return prop.bedrooms >= 1 && prop.bedrooms <= 3;
-      if (filter === "4-6 Bedrooms")
-        return prop.bedrooms >= 4 && prop.bedrooms <= 6;
-      if (filter === "7+ Bedrooms") return prop.bedrooms >= 7;
-      return false;
-    });
+    let passesBedroom = true;
+
+    if (activeBedroomFilters.length > 0) {
+      passesBedroom = activeBedroomFilters.some((filter) => {
+        if (filter === "1-3 Bedrooms")
+          return prop.bedrooms >= 1 && prop.bedrooms <= 3;
+        if (filter === "4-6 Bedrooms")
+          return prop.bedrooms >= 4 && prop.bedrooms <= 6;
+        if (filter === "7+ Bedrooms") return prop.bedrooms >= 7;
+      });
+    }
+
+    return passesBedroom;
   });
 
-  // Sort properties
+  // SORT
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortOption === "low") return a.price - b.price;
     if (sortOption === "high") return b.price - a.price;
     return 0;
   });
 
-  // Pagination
+  // PAGINATION
   const displayedProperties = sortedProperties.slice(
     (currentPage - 1) * propertiesPerPage,
     currentPage * propertiesPerPage
@@ -93,22 +118,6 @@ const MainHome = () => {
             >
               More Filter
             </button>
-            <span className="text-gray-400 hidden sm:block">|</span>
-            <p className="text-gray-500 hidden sm:block">
-              Showing{" "}
-              <span className="text-black font-semibold">
-                {(currentPage - 1) * propertiesPerPage + 1}-
-                {Math.min(
-                  currentPage * propertiesPerPage,
-                  sortedProperties.length
-                )}
-              </span>{" "}
-              of{" "}
-              <span className="text-black font-semibold">
-                {sortedProperties.length}
-              </span>{" "}
-              results
-            </p>
           </div>
 
           <select
@@ -126,22 +135,42 @@ const MainHome = () => {
         {showMoreFilters && (
           <div className="mt-4 p-4 border-t border-gray-200 bg-white shadow-sm">
             <p className="font-semibold mb-2">Filter Options</p>
+
             <div className="flex flex-wrap gap-4">
-              {[
-                "For Sale",
-                "For Rent",
-                "1-3 Bedrooms",
-                "4-6 Bedrooms",
-                "7+ Bedrooms",
-              ].map((filter) => (
+              {/* FOR SALE */}
+              <button
+                onClick={() => handleSaleRentClick("For Sale")}
+                className={`px-3 py-1 border rounded transition-all ${
+                  activeSaleRent === "For Sale"
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-gray-200 text-gray-700 border-gray-300"
+                }`}
+              >
+                For Sale
+              </button>
+
+              {/* FOR RENT */}
+              <button
+                onClick={() => handleSaleRentClick("For Rent")}
+                className={`px-3 py-1 border rounded transition-all ${
+                  activeSaleRent === "For Rent"
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-gray-200 text-gray-700 border-gray-300"
+                }`}
+              >
+                For Rent
+              </button>
+
+              {/* BEDROOM FILTERS */}
+              {["1-3 Bedrooms", "4-6 Bedrooms", "7+ Bedrooms"].map((filter) => (
                 <button
                   key={filter}
-                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
-                    activeFilters.includes(filter)
-                      ? "bg-gray-200 border-gray-500"
-                      : ""
+                  onClick={() => handleBedroomFilter(filter)}
+                  className={`px-3 py-1 border rounded transition-all ${
+                    activeBedroomFilters.includes(filter)
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-gray-200 text-gray-700 border-gray-300"
                   }`}
-                  onClick={() => handleFilterClick(filter)}
                 >
                   {filter}
                 </button>
