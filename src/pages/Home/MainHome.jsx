@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Pagination from "../../components/Pagination";
 
 import slide1 from "../../assets/slide1.jpg";
@@ -17,15 +18,29 @@ import {
 } from "lucide-react";
 import { FiVideo, FiImage } from "react-icons/fi";
 
-const MainHome = ({ properties }) => {
+const MainHome = () => {
   const [sortOption, setSortOption] = useState("default");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const propertiesPerPage = 9;
 
-  console.log("Properties received in MainHome:", properties);
+  // Fetch all properties from backend
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await axios.get(
+          "https://beta-house-backend-b96p.onrender.com/api/properties"
+        );
+        setProperties(res.data.properties);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchProperties();
+  }, []);
 
   // Handle filter button click
   const handleFilterClick = (filter) => {
@@ -38,7 +53,7 @@ const MainHome = ({ properties }) => {
   };
 
   // Filter properties
-  const filteredProperties = properties?.filter((prop) => {
+  const filteredProperties = properties.filter((prop) => {
     if (!activeFilters.length) return true;
     return activeFilters.some((filter) => {
       if (filter === "For Sale" || filter === "For Rent")
@@ -53,7 +68,7 @@ const MainHome = ({ properties }) => {
   });
 
   // Sort properties
-  const sortedProperties = [...(filteredProperties || [])].sort((a, b) => {
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortOption === "low") return a.price - b.price;
     if (sortOption === "high") return b.price - a.price;
     return 0;
@@ -217,14 +232,14 @@ const MainHome = ({ properties }) => {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         />
-
-        {/* POPULAR PROPERTIES SECTION */}
         <section className="w-full mt-16 mb-20 px-4 lg:px-16 relative">
+          {/* Header */}
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#0A0A0A] mb-12">
             Discover Our Popular Properties
           </h2>
 
           <div className="relative">
+            {/* LEFT ARROW */}
             <button
               className="absolute top-1/2 -left-6 transform -translate-y-1/2 w-14 h-14 bg-gray-300 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
               onClick={() =>
@@ -236,6 +251,7 @@ const MainHome = ({ properties }) => {
               <ArrowLeft size={30} className="text-gray-800" />
             </button>
 
+            {/* RIGHT ARROW */}
             <button
               className="absolute top-1/2 -right-6 transform -translate-y-1/2 w-14 h-14 bg-green-400 hover:bg-green-500 rounded-full flex items-center justify-center z-30 lg:hidden"
               onClick={() =>
@@ -247,6 +263,7 @@ const MainHome = ({ properties }) => {
               <ArrowRight size={30} className="text-gray-800" />
             </button>
 
+            {/* Cards Container */}
             <div
               id="propertiesFlex"
               className="flex gap-10 overflow-x-auto scroll-smooth scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-10"
